@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <queue>
+#include <unordered_map>
 
 using namespace std;
 
@@ -11,6 +12,7 @@ private:
     int manhatten_distance;
     int hamming_distance;
     int g_score;
+    size_t hash_value;
 
     vector<int> flatten(){
         vector<int> v;
@@ -92,11 +94,17 @@ public:
         return Board(grid);
     }
 
-    Board(vector<vector<int>> board){
+    Board(vector<vector<int>> board)
+        : Board()
+    {
         this->board = board;
+    }
+
+    Board(){
         manhatten_distance = -1;
         hamming_distance = -1;
         g_score = 0;
+        hash_value = -1;
     }
 
     inline void setgscore(int score){
@@ -115,6 +123,22 @@ public:
         return board.size();
     }
 
+    inline size_t getHash(){
+        if(hash_value != -1) return hash_value;
+
+        int size = getSize();
+        size_t hash = 0;
+
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size; j++){
+                hash += getNumber(i, j) * (i*size+j);
+            }
+        }
+
+        hash_value = hash;
+        return hash;
+    }
+
     int getHammingDistance(){
         if(hamming_distance != -1) return hamming_distance;
 
@@ -128,6 +152,7 @@ public:
             }
         }
 
+        hamming_distance = dist;
         return dist;
     }
 
@@ -143,6 +168,7 @@ public:
             }
         }
 
+        manhatten_distance = dist;
         return dist;
     }
 
@@ -233,6 +259,13 @@ class HammingCompare {
       }
 };
 
+class BoardHash{
+    public:
+       size_t operator()(Board board){
+           return board.getHash();
+       }
+};
+
 class Solver{
     Board initial;
 public:
@@ -241,6 +274,10 @@ public:
     }
 
     void solve(){
+        priority_queue<Board, vector<Board>, HammingCompare> openSet;
+
+        openSet.push(initial);
+        unordered_map<Board, Board, BoardHash> parent;
     }
 
     int no_of_moves(){
