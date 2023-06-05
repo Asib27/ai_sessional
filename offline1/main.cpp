@@ -7,6 +7,9 @@ class Board
 {
 private:
     vector<vector<int>> board;
+    int manhatten_distance;
+    int hamming_distance;
+    int g_score;
 
     vector<int> flatten(){
         vector<int> v;
@@ -90,6 +93,17 @@ public:
 
     Board(vector<vector<int>> board){
         this->board = board;
+        manhatten_distance = -1;
+        hamming_distance = -1;
+        g_score = 0;
+    }
+
+    inline void setgscore(int score){
+        g_score = score;
+    }
+
+    inline int getgscore(){
+        return g_score;
     }
 
     inline int getNumber(int row, int col){
@@ -101,6 +115,8 @@ public:
     }
 
     int getHammingDistance(){
+        if(hamming_distance != -1) return hamming_distance;
+
         int dist = 0;
         int size = getSize();
 
@@ -115,6 +131,8 @@ public:
     }
 
     int getManhattenDistance(){
+        if(manhatten_distance != -1) return manhatten_distance;
+
         int size = getSize();
         int dist = 0;
 
