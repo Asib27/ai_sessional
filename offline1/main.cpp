@@ -51,6 +51,19 @@ private:
         return -1;
     }
 
+    int getManhattenDistanceForCell(int row, int col){
+        int size = getSize();
+        int val = getNumber(row, col);
+
+        if(val == 0) return 0;
+        
+        // val is 1 indexed
+        int target_row = (val-1) / size;
+        int target_col = (val-1) % size;
+
+        return abs(target_row - row) + abs(target_col - col);
+    }
+
 public:
     static Board getGoalBoard(int gridSize){
         vector<vector<int>> grid(gridSize, vector<int>(gridSize));
@@ -69,11 +82,11 @@ public:
         this->board = board;
     }
 
-    int getNumber(int row, int col){
+    inline int getNumber(int row, int col){
         return board[row][col];
     }
 
-    int getSize(){
+    inline int getSize(){
         return board.size();
     }
 
@@ -92,7 +105,16 @@ public:
     }
 
     int getManhattenDistance(){
-        return 0;
+        int size = getSize();
+        int dist = 0;
+
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size; j++){
+                dist += getManhattenDistanceForCell(i, j);
+            }
+        }
+
+        return dist;
     }
 
     bool isGoal(){
@@ -142,6 +164,26 @@ public:
     }
 };
 
+void manhattenDistanceTest(){
+    vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,0,8}};
+    Board board(goal);
+    if(board.getManhattenDistance() != 1) cout << board << board.getManhattenDistance() << endl;
+
+    goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,8,0}};
+    board = Board(goal);
+    if(board.getManhattenDistance() != 0) cout << board << board.getManhattenDistance() << endl;
+
+    goal = {vector<int>{8,1,3}, vector<int>{4,0,2}, vector<int>{7,6,5}};
+    board = Board(goal);
+    if(board.getManhattenDistance() != 10) cout << board << board.getManhattenDistance() << endl;
+
+    goal = {vector<int>{7,2,4}, vector<int>{6,0,5}, vector<int>{8,3,1}};
+    board = Board(goal);
+    if(board.getManhattenDistance() != 16) cout << board << board.getManhattenDistance() << endl;
+
+    cout << "Manhatten Distance Test Done" << endl;
+}
+
 void hammingDistanceTest(){
     vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,0,8}};
     Board board(goal);
@@ -151,15 +193,15 @@ void hammingDistanceTest(){
     board = Board(goal);
     if(board.getHammingDistance() != 0) cout << board;
 
-    goal = {vector<int>{4,2,3}, vector<int>{5,1,6}, vector<int>{7,8,0}};
+    goal = {vector<int>{8,1,3}, vector<int>{4,0,2}, vector<int>{7,6,5}};
     board = Board(goal);
-    if(board.getHammingDistance() != 3) cout << board;
+    if(board.getHammingDistance() != 5) cout << board;
 
     goal = {vector<int>{7,2,4}, vector<int>{6,0,5}, vector<int>{8,3,1}};
     board = Board(goal);
     if(board.getHammingDistance() != 7) cout << board;
 
-    cout << "Manhatten Distance Test Done" << endl;
+    cout << "Hamming Distance Test Done" << endl;
 }
 
 void isGoalTest(){
@@ -228,4 +270,5 @@ int main(){
     isSolvableTest();
     is4SolvableTest();
     hammingDistanceTest();
+    manhattenDistanceTest();
 }
