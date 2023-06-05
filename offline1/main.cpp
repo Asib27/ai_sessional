@@ -1,5 +1,6 @@
 #include <iostream>
 #include <vector>
+#include <queue>
 
 using namespace std;
 
@@ -209,6 +210,45 @@ public:
         }
 
         return os;
+    }
+};
+
+class ManhattenCompare {
+    public:
+       bool operator()(Board a, Board b){
+           if(a.getManhattenDistance() < b.getManhattenDistance()){
+               return true;
+           }
+           return false;
+      }
+};
+
+class HammingCompare {
+    public:
+       bool operator()(Board a, Board b){
+           if(a.getHammingDistance() < b.getHammingDistance()){
+               return true;
+           }
+           return false;
+      }
+};
+
+class Solver{
+    Board initial;
+public:
+    Solver(Board initial) :initial(initial)
+    {
+    }
+
+    void solve(){
+    }
+
+    int no_of_moves(){
+        return 0;
+    }
+
+    void getSolution(){
+
     }
 };
 
