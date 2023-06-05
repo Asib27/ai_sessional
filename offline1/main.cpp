@@ -51,6 +51,16 @@ private:
         return -1;
     }
 
+    int getBlankSquareColumn(int row){
+        int size = getSize();
+
+        for(int i = 0; i < size; i++){
+            if(getNumber(row, i) == 0) return i;
+        }
+
+        return -1;
+    }
+
     int getManhattenDistanceForCell(int row, int col){
         int size = getSize();
         int val = getNumber(row, col);
@@ -135,7 +145,27 @@ public:
     }
 
     vector<Board> getNeighbours(){
-        return vector<Board> ();
+        int size = getSize();
+        int row = getBlankSquareRow();
+        int col = getBlankSquareColumn(row);
+
+        vector<Board> neighbours;
+
+        for(auto i : vector<pair<int,int>>({{1,0}, {-1,0}, {0,1}, {0,-1}})){
+            int nei_row = row + i.first;
+            int nei_col = col + i.second;
+
+            if(nei_row < 0 || nei_row >= size) continue;
+            if(nei_col < 0 || nei_col >= size) continue;
+
+            vector<vector<int>> nei_board(board);
+            nei_board[row][col] = board[nei_row][nei_col];
+            nei_board[nei_row][nei_col] = 0;
+
+            neighbours.emplace_back(nei_board);
+        }
+
+        return neighbours;
     }
 
     bool isSolvable(){
@@ -265,10 +295,20 @@ void is4SolvableTest(){
     cout << "4 solvable test done" << endl;
 }
 
+void neighboursTest(){
+    vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,0,6}, vector<int>{7,5,8}};
+    Board board(goal);
+    auto nei = board.getNeighbours();
+    for(auto i: nei){
+        cout << i << endl;
+    }
+}
+
 int main(){
     isGoalTest();
     isSolvableTest();
     is4SolvableTest();
     hammingDistanceTest();
     manhattenDistanceTest();
+    // neighboursTest();
 }
