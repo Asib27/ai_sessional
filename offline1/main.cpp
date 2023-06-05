@@ -78,7 +78,17 @@ public:
     }
 
     int getHammingDistance(){
-        return 0;
+        int dist = 0;
+        int size = getSize();
+
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size; j++){
+                if(board[i][j] != 0)
+                    dist += (board[i][j] != getGoalNumber(i, j, size)); 
+            }
+        }
+
+        return dist;
     }
 
     int getManhattenDistance(){
@@ -132,8 +142,28 @@ public:
     }
 };
 
+void hammingDistanceTest(){
+    vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,0,8}};
+    Board board(goal);
+    if(board.getHammingDistance() != 1) cout << board;
+
+    goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,8,0}};
+    board = Board(goal);
+    if(board.getHammingDistance() != 0) cout << board;
+
+    goal = {vector<int>{4,2,3}, vector<int>{5,1,6}, vector<int>{7,8,0}};
+    board = Board(goal);
+    if(board.getHammingDistance() != 3) cout << board;
+
+    goal = {vector<int>{7,2,4}, vector<int>{6,0,5}, vector<int>{8,3,1}};
+    board = Board(goal);
+    if(board.getHammingDistance() != 7) cout << board;
+
+    cout << "Manhatten Distance Test Done" << endl;
+}
+
 void isGoalTest(){
-    vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,8,9}};
+    vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,0,8}};
     Board board(goal);
     if(board.isGoal() != 0) cout << board;
 
@@ -197,4 +227,5 @@ int main(){
     isGoalTest();
     isSolvableTest();
     is4SolvableTest();
+    hammingDistanceTest();
 }
