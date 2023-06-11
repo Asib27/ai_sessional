@@ -2,6 +2,7 @@
 #include <vector>
 #include <queue>
 #include <unordered_map>
+#include <unordered_set>
 
 using namespace std;
 
@@ -14,7 +15,7 @@ private:
     int g_score;
     size_t hash_value;
 
-    vector<int> flatten(){
+    vector<int> flatten() const{
         vector<int> v;
 
         for(auto &i: board){
@@ -27,12 +28,12 @@ private:
         return v;
     }
 
-    int getGoalNumber(int row, int col, int size){
+    int getGoalNumber(int row, int col, int size)const {
         if(row == size-1 && col == size-1) return 0;
         return row*size + col + 1;
     }
 
-    int findInversionCount(){
+    int findInversionCount() const{
         int inversion = 0;
         vector<int> flat = flatten();
 
@@ -45,7 +46,7 @@ private:
         return inversion;
     }
 
-    int getBlankSquareRow(){
+    int getBlankSquareRow() const{
         int size = getSize();
 
         for(int i = 0; i < size; i++){
@@ -57,7 +58,7 @@ private:
         return -1;
     }
 
-    int getBlankSquareColumn(int row){
+    int getBlankSquareColumn(int row) const{
         int size = getSize();
 
         for(int i = 0; i < size; i++){
@@ -67,7 +68,7 @@ private:
         return -1;
     }
 
-    int getManhattenDistanceForCell(int row, int col){
+    int getManhattenDistanceForCell(int row, int col) const{
         int size = getSize();
         int val = getNumber(row, col);
 
@@ -78,6 +79,19 @@ private:
         int target_col = (val-1) % size;
 
         return abs(target_row - row) + abs(target_col - col);
+    }
+
+    inline size_t _getHash() const{
+        int size = getSize();
+        size_t hash = 0;
+
+        for(int i = 0; i < size; i++){
+            for(int j = 0; j < size; j++){
+                hash += getNumber(i, j) * (i*size+j);
+            }
+        }
+
+        return hash;
     }
 
 public:
@@ -94,10 +108,12 @@ public:
         return Board(grid);
     }
 
-    Board(vector<vector<int>> board)
+    Board(vector<vector<int>> board, int gScore=0)
         : Board()
     {
         this->board = board;
+        this->g_score = gScore;
+        this->hash_value = _getHash();
     }
 
     Board(){
@@ -111,32 +127,20 @@ public:
         g_score = score;
     }
 
-    inline int getgscore(){
+    inline int getgscore() const{
         return g_score;
     }
 
-    inline int getNumber(int row, int col){
+    inline int getNumber(int row, int col) const{
         return board[row][col];
     }
 
-    inline int getSize(){
+    inline int getSize() const{
         return board.size();
     }
 
-    inline size_t getHash(){
-        if(hash_value != -1) return hash_value;
-
-        int size = getSize();
-        size_t hash = 0;
-
-        for(int i = 0; i < size; i++){
-            for(int j = 0; j < size; j++){
-                hash += getNumber(i, j) * (i*size+j);
-            }
-        }
-
-        hash_value = hash;
-        return hash;
+    inline size_t getHash() const{
+        return hash_value;
     }
 
     int getHammingDistance(){
@@ -207,7 +211,7 @@ public:
             nei_board[row][col] = board[nei_row][nei_col];
             nei_board[nei_row][nei_col] = 0;
 
-            neighbours.emplace_back(nei_board);
+            neighbours.emplace_back(nei_board, this->getgscore()+1);
         }
 
         return neighbours;
@@ -237,57 +241,187 @@ public:
 
         return os;
     }
+
+    bool operator==(const Board &board) const{
+        if(this->getSize() != board.getSize()) return false;
+
+        int n = this->getSize();
+        for(int i = 0; i < n; i++){
+            for(int j = 0; j < n; j++){
+                if(this->getNumber(i, j) != board.getNumber(i, j)) return false;
+            }
+        }
+
+        return true;
+    }
 };
 
 class ManhattenCompare {
     public:
        bool operator()(Board a, Board b){
-           if(a.getManhattenDistance() < b.getManhattenDistance()){
-               return true;
-           }
-           return false;
+            int afscore = a.getManhattenDistance() + a.getgscore();
+            int bfscore = b.getManhattenDistance() + b.getgscore();
+            if(afscore > bfscore){
+                return true;
+            }
+            return false;
       }
 };
 
 class HammingCompare {
     public:
-       bool operator()(Board a, Board b){
-           if(a.getHammingDistance() < b.getHammingDistance()){
-               return true;
-           }
-           return false;
+       bool operator()(Board &a, Board &b){
+            int afscore = a.getHammingDistance() + a.getgscore();
+            int bfscore = b.getHammingDistance() + b.getgscore();
+            if(afscore > bfscore){
+                return true;
+            }
+            return false;
       }
 };
 
 class BoardHash{
     public:
-       size_t operator()(Board board){
+       size_t operator()(const Board &board)const{
            return board.getHash();
        }
 };
 
-class Solver{
-    Board initial;
-public:
-    Solver(Board initial) :initial(initial)
-    {
+void solveManhatten(Board initial, bool debug=false){
+    int explored = 0;
+    int expanded = 0;
+
+    priority_queue<Board, vector<Board>, ManhattenCompare> openSet;
+
+    openSet.push(initial);
+    unordered_map<Board, Board, BoardHash> parent;
+    unordered_set<Board, BoardHash> seen;
+    seen.insert(initial);
+
+    while(!openSet.empty()){
+        Board current = openSet.top();
+        expanded++;
+
+        if(current.isGoal()){
+            vector<Board> path;
+            int dist = current.getgscore();
+
+            while(parent.count(current)){
+                path.push_back(current);
+                current = parent[current];
+            }
+            path.push_back(current);
+
+            for(int i = path.size()-1; i >= 0 ; i--){
+                cout << path[i] << endl;
+            }
+
+            cout << dist << endl;
+
+            cout << "Manhatten Heuristics" << endl;
+            cout << "Expanded : " << expanded << endl;
+            cout << "Explored : " << explored << endl;
+            break;
+        }
+
+        openSet.pop();
+
+        if(debug){
+            cout << "=================================================" << endl;
+            cout << current.getHammingDistance() + current.getgscore() << endl;
+            cout << current << endl;
+        }
+
+        for(auto nei : current.getNeighbours()){
+            if(!seen.count(nei)){
+                parent[nei] = current;
+                openSet.push(nei);
+                seen.insert(nei);
+                explored++;
+
+                // cout << parent[nei] << endl;
+
+                if(debug)
+                    cout << nei << endl;
+            }
+
+        }
+
+        if(debug){
+            cout << "======================================================" << endl;
+            int a;
+            cin >> a;
+        }
     }
+}
 
-    void solve(){
-        priority_queue<Board, vector<Board>, HammingCompare> openSet;
+void solveHamming(Board initial, bool debug=false){
+    int explored = 0;
+    int expanded = 0;
 
-        openSet.push(initial);
-        unordered_map<Board, Board, BoardHash> parent;
+    priority_queue<Board, vector<Board>, HammingCompare> openSet;
+
+    openSet.push(initial);
+    unordered_map<Board, Board, BoardHash> parent;
+    unordered_set<Board, BoardHash> seen;
+    seen.insert(initial);
+
+    while(!openSet.empty()){
+        Board current = openSet.top();
+        expanded++;
+        if(current.isGoal()){
+            vector<Board> path;
+            int dist = current.getgscore();
+
+            while(parent.count(current)){
+                path.push_back(current);
+                current = parent[current];
+            }
+            path.push_back(current);
+
+            for(int i = path.size()-1; i >= 0 ; i--){
+                cout << path[i] << endl;
+            }
+
+            cout << dist << endl;
+
+
+            cout << "Hamming Heuristics" << endl;
+            cout << "Expanded : " << expanded << endl;
+            cout << "Explored : " << explored << endl;
+            break;
+        }
+
+        openSet.pop();
+
+        if(debug){
+            cout << "=================================================" << endl;
+            cout << current.getHammingDistance() + current.getgscore() << endl;
+            cout << current << endl;
+        }
+
+        for(auto nei : current.getNeighbours()){
+            if(!seen.count(nei)){
+                parent[nei] = current;
+                openSet.push(nei);
+                seen.insert(nei);
+                explored++;
+
+                // cout << parent[nei] << endl;
+
+                if(debug)
+                    cout << nei << endl;
+            }
+
+        }
+
+        if(debug){
+            cout << "======================================================" << endl;
+            int a;
+            cin >> a;
+        }
     }
-
-    int no_of_moves(){
-        return 0;
-    }
-
-    void getSolution(){
-
-    }
-};
+}
 
 void manhattenDistanceTest(){
     vector<vector<int>> goal = {vector<int>{1,2,3}, vector<int>{4,5,6}, vector<int>{7,0,8}};
@@ -400,10 +534,36 @@ void neighboursTest(){
 }
 
 int main(){
-    isGoalTest();
-    isSolvableTest();
-    is4SolvableTest();
-    hammingDistanceTest();
-    manhattenDistanceTest();
+    // isGoalTest();
+    // isSolvableTest();
+    // is4SolvableTest();
+    // hammingDistanceTest();
+    // manhattenDistanceTest();
     // neighboursTest();
+
+    vector<vector<int>> goal = {
+        vector<int>{4,1,3}, 
+        vector<int>{0,2,6}, 
+        vector<int>{7,5,8}};
+
+
+    int boardSize;
+    cin >> boardSize;
+    vector<vector<int>> boardMat(boardSize, vector<int>(boardSize));
+
+    for(auto &i: boardMat){
+        for(auto &j: i){
+            cin >> j;
+        }
+    }
+
+    Board board(boardMat);   
+
+    if(board.isSolvable()){
+        solveManhatten(board, false);
+        solveHamming(board, false);
+    }
+    else{
+        cout << "Insolvable Puzzle" << endl;
+    }
 }
