@@ -2,6 +2,7 @@
 #include<iomanip>
 #include<vector>
 #include<numeric>
+#include<functional>
 
 using namespace std;
 
@@ -146,17 +147,132 @@ public:
 
         return os;
     }
+
+    vector<int> get_available_moves(){
+        vector<int>& v = getPlayerVector('s');
+        vector<int> ans;
+
+        for(int i = 0; i < v.size(); i++){
+            if(v[i] != 0) ans.push_back(i);
+        }
+        return ans;
+    }
+
+    friend int heuristic1(Mancala &mancala, int me);
+};
+
+int heuristic1(Mancala &mancala, int me){
+    if(me == 1){
+        return mancala.p1_store - mancala.p2_store;
+    }else{
+        return mancala.p2_store - mancala.p1_store;
+    }
+}
+
+class AlphaBetaPlayer{
+    const int maximize;
+    function<int(Mancala &, int)> heuristic;
+
+    int _suggest_next_move(
+        Mancala &mancala, int depth, 
+        int alpha, int beta
+    ){
+        if(depth == 0 || mancala.win()){
+            return heuristic(mancala, maximize);
+        }
+
+        if(mancala.current_turn() == maximize){
+            int value = INT32_MIN;
+
+            vector<int> next_moves = mancala.get_available_moves();
+            for(auto i: next_moves){
+                Mancala temp(mancala);
+                temp.play_turn(i);
+                int node_value = _suggest_next_move(temp, depth-1, alpha, beta);
+
+                value = max(node_value, value);
+
+                if(value >= beta){
+                    break;
+                }
+                alpha = max(alpha, value);
+            }
+            return value;
+        }else{
+            int value = INT32_MAX;
+            vector<int> next_moves = mancala.get_available_moves();
+            for(auto i: next_moves){
+                Mancala temp(mancala);
+                temp.play_turn(i);
+                int node_value = _suggest_next_move(temp, depth-1, alpha, beta);
+                value = min(node_value, value);
+
+                if(value <= alpha){
+                    break;
+                }
+                beta = min(beta, value);
+            }
+            return value;
+        }
+
+        cerr << "ERROR : " << __LINE__ << endl;
+        return 0;
+    }
+
+public:
+    AlphaBetaPlayer(int maximize, function<int(Mancala &, int)> heuristic)
+        : maximize(maximize), heuristic(heuristic)
+    {
+
+    }
+
+    int suggest_next_move(Mancala &mancala, int depth){
+        int alpha = INT32_MIN;
+        int beta = INT32_MAX;
+        int value = INT32_MIN;
+
+        int move = -1;
+
+        vector<int> next_moves = mancala.get_available_moves();
+        
+        for(auto i: next_moves){
+            Mancala temp(mancala);
+            temp.play_turn(i);
+            int node_value = _suggest_next_move(temp, depth-1, alpha, beta);
+
+            if(node_value > value){
+                move = i;
+            }
+            value = max(node_value, value);
+
+            // value always less than beta
+            // if(value >= beta){
+            //     break;
+            // }
+            alpha = max(alpha, value);
+        }
+        return move;
+    }
 };
 
 int main(){
     Mancala mancala;
+    AlphaBetaPlayer player1(2, heuristic1);
+    
         
     cout << mancala << endl;
 
     while(true){
-        cout << "next turn ? [" << mancala.current_turn() << "]" << endl;
         int move;
-        cin >> move;
+        cout << "next turn ? [" << mancala.current_turn() << "]" << endl;
+        if(mancala.current_turn() == 2){
+            move = player1.suggest_next_move(mancala, 100);
+            cout << "bot played [ " << move << " ]" << endl;  
+        }
+        else{
+            cout << "Your turn : " ;
+            cin >> move;
+        }
 
         if(move == -1) break;
 
