@@ -165,6 +165,7 @@ public:
 
 
     friend int heuristic1(Mancala &mancala, int me);
+    friend int heuristic2(Mancala &mancala, int me);
 };
 
 int heuristic1(Mancala &mancala, int me){
@@ -172,6 +173,18 @@ int heuristic1(Mancala &mancala, int me){
         return mancala.p1_store - mancala.p2_store;
     }else{
         return mancala.p2_store - mancala.p1_store;
+    }
+}
+
+int heuristic2(Mancala &mancala, int me){
+    int sum1 = accumulate(mancala.p1.begin(), mancala.p1.begin(), 0);
+    int sum2 = accumulate(mancala.p2.begin(), mancala.p2.begin(), 0);
+
+    int w1  = 1, w2 = 1;
+    if(me == 1){
+        return w1*(mancala.p1_store - mancala.p2_store) + w2*(sum1-sum2);
+    }else{
+        return w1*(mancala.p2_store - mancala.p1_store) + w2*(sum2-sum1);
     }
 }
 
@@ -294,14 +307,15 @@ void manVsbot(){
 
 int main(){
     Mancala mancala;
-    AlphaBetaPlayer player1(1, heuristic1);
+    AlphaBetaPlayer player1(1, heuristic2);
     AlphaBetaPlayer player2(2, heuristic1);
 
     while(true){
+        cout << mancala << endl << endl;
         if(mancala.current_turn() == 1){
-            mancala.play_turn(player1.suggest_next_move(mancala, 100));
+            mancala.play_turn(player1.suggest_next_move(mancala, 1000));
         }else if(mancala.current_turn() == 2){
-            mancala.play_turn(player2.suggest_next_move(mancala, 100));
+            mancala.play_turn(player2.suggest_next_move(mancala, 1000));
         }else{
             if(mancala.win() != -1){
                 break;
