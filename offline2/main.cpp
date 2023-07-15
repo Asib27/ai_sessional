@@ -118,12 +118,14 @@ public:
     
     int win(){
         if(is_game_over){
+            if(p1_store == p2_store) return 0;
             return p1_store > p2_store? 1: 2;
         }
         return -1;
     }
 
     int current_turn(){
+        if(is_game_over) return -1;
         return cur_turn;
     }
 
@@ -157,6 +159,10 @@ public:
         }
         return ans;
     }
+
+    int get_p1_score(){ return p1_store;}
+    int get_p2_score(){ return p2_store;}
+
 
     friend int heuristic1(Mancala &mancala, int me);
 };
@@ -255,7 +261,7 @@ public:
     }
 };
 
-int main(){
+void manVsbot(){
     Mancala mancala;
     AlphaBetaPlayer player1(2, heuristic1);
     
@@ -284,6 +290,25 @@ int main(){
             break;
         }
     }
+}
+
+int main(){
+    Mancala mancala;
+    AlphaBetaPlayer player1(1, heuristic1);
+    AlphaBetaPlayer player2(2, heuristic1);
+
+    while(true){
+        if(mancala.current_turn() == 1){
+            mancala.play_turn(player1.suggest_next_move(mancala, 100));
+        }else if(mancala.current_turn() == 2){
+            mancala.play_turn(player2.suggest_next_move(mancala, 100));
+        }else{
+            if(mancala.win() != -1){
+                break;
+            }
+        }
+    }
+    cout << mancala.get_p1_score() << " " << mancala.get_p2_score() << endl;
 
     return 0;
 }
