@@ -18,6 +18,11 @@ private:
     int cur_turn;
     bool is_game_over;
 
+    int add_move1;
+    int add_move2;
+    int captured1;
+    int captured2;
+
     vector<int>& getPlayerVector(char c){
         if(c == 's'){
             if(cur_turn == 1) return p1;
@@ -55,7 +60,7 @@ public:
         : p1(6, 4), p2(6, 4), p1_store(0), p2_store(0),
         cur_turn(1), SIZE(6), is_game_over(false)
     {
-
+        add_move1 = add_move2 = captured1 = captured2 = 0;
     }
 
     int play_turn(int move){
@@ -103,13 +108,20 @@ public:
         // get another turn
         if(last != 6){
             cur_turn = cur_turn == 1? 2 : 1;
+        }else{
+            if(cur_turn == 1) add_move1++;
+            else add_move2++;
         }
 
         // if last piece falls on empty
         if(last <= 5 && self[last] == 1){
+            if(cur_turn == 1) captured1 += self[last] + opp[SIZE-last-1];
+            else captured2 = self[last] + opp[SIZE-last-1];
+
             self_store += self[last] + opp[SIZE-last-1];
             self[last] = 0;
             opp[SIZE-last-1] = 0;
+
         }
 
         check_game_over();
@@ -151,6 +163,8 @@ public:
     }
 
     vector<int> get_available_moves(){
+        if(is_game_over) return vector<int>();
+
         vector<int>& v = getPlayerVector('s');
         vector<int> ans;
 
@@ -166,6 +180,8 @@ public:
 
     friend int heuristic1(Mancala &mancala, int me);
     friend int heuristic2(Mancala &mancala, int me);
+    friend int heuristic3(Mancala &mancala, int me);
+    friend int heuristic4(Mancala &mancala, int me);
 };
 
 int heuristic1(Mancala &mancala, int me){
@@ -188,6 +204,32 @@ int heuristic2(Mancala &mancala, int me){
     }
 }
 
+int heuristic3(Mancala &mancala, int me){
+    int sum1 = accumulate(mancala.p1.begin(), mancala.p1.begin(), 0);
+    int sum2 = accumulate(mancala.p2.begin(), mancala.p2.begin(), 0);
+
+    int w1  = 1, w2 = 1, w3 = 1;
+    if(me == 1){
+        return w1*(mancala.p1_store - mancala.p2_store) + w2*(sum1-sum2) + w3 * mancala.add_move1;
+    }else{
+        return w1*(mancala.p2_store - mancala.p1_store) + w2*(sum2-sum1) + w3 * mancala.add_move2;
+    }
+}
+
+int heuristic4(Mancala &mancala, int me){
+    int sum1 = accumulate(mancala.p1.begin(), mancala.p1.begin(), 0);
+    int sum2 = accumulate(mancala.p2.begin(), mancala.p2.begin(), 0);
+
+    int w1  = 1, w2 = 1, w3 = 1, w4 = 1;
+    if(me == 1){
+        return w1*(mancala.p1_store - mancala.p2_store) + w2*(sum1-sum2) 
+        + w3 * mancala.add_move1 + w4 * mancala.captured1;
+    }else{
+        return w1*(mancala.p2_store - mancala.p1_store) + w2*(sum2-sum1) 
+        + w3 * mancala.add_move2 + w4 * mancala.captured2;
+    }
+}
+
 class AlphaBetaPlayer{
     const int maximize;
     function<int(Mancala &, int)> heuristic;
@@ -196,7 +238,7 @@ class AlphaBetaPlayer{
         Mancala &mancala, int depth, 
         int alpha, int beta
     ){
-        if(depth == 0 || mancala.win()){
+        if(depth == 0 || mancala.win() != -1){
             return heuristic(mancala, maximize);
         }
 
@@ -274,18 +316,22 @@ public:
     }
 };
 
-void manVsbot(){
+
+function<int(Mancala&, int)> heuristicks[5] = {
+    heuristic1, heuristic1, heuristic2, heuristic3, heuristic4
+};
+
+void manVsbot(int bot){
     Mancala mancala;
-    AlphaBetaPlayer player1(2, heuristic1);
+    AlphaBetaPlayer player1(2, heuristicks[bot]);
     
-        
     cout << mancala << endl;
 
     while(true){
         int move;
         cout << "next turn ? [" << mancala.current_turn() << "]" << endl;
         if(mancala.current_turn() == 2){
-            move = player1.suggest_next_move(mancala, 100);
+            move = player1.suggest_next_move(mancala, 10);
             cout << "bot played [ " << move << " ]" << endl;  
         }
         else{
@@ -305,24 +351,41 @@ void manVsbot(){
     }
 }
 
-int main(){
+Mancala botVsBot(int heu1, int heu2, bool print=false){
     Mancala mancala;
-    AlphaBetaPlayer player1(1, heuristic2);
-    AlphaBetaPlayer player2(2, heuristic1);
+    AlphaBetaPlayer player1(1, heuristicks[heu1]);
+    AlphaBetaPlayer player2(2, heuristicks[heu2]);
 
     while(true){
-        cout << mancala << endl << endl;
+        if(print) cout << mancala << endl << endl;
+
         if(mancala.current_turn() == 1){
-            mancala.play_turn(player1.suggest_next_move(mancala, 1000));
+            mancala.play_turn(player1.suggest_next_move(mancala, 10));
         }else if(mancala.current_turn() == 2){
-            mancala.play_turn(player2.suggest_next_move(mancala, 1000));
+            mancala.play_turn(player2.suggest_next_move(mancala, 10));
         }else{
             if(mancala.win() != -1){
                 break;
             }
         }
     }
-    cout << mancala.get_p1_score() << " " << mancala.get_p2_score() << endl;
+    if(print) cout << mancala.get_p1_score() << " " << mancala.get_p2_score() << endl;
 
+    return mancala;
+}
+
+void generateReport(){
+    for(int i = 1; i <= 4; i++){
+        for(int j = 1; j <=4 ; j++){
+            Mancala mancala = botVsBot(i,j);
+            cout << "heuristicks" << i << " " << mancala.get_p1_score() 
+                 << " : " << mancala.get_p2_score() <<  " heuristicks" << j << endl; 
+        }   
+    }
+}
+
+int main(){
+    
+    generateReport();
     return 0;
 }
