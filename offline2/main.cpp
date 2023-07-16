@@ -300,6 +300,7 @@ public:
             Mancala temp(mancala);
             temp.play_turn(i);
             int node_value = _suggest_next_move(temp, depth-1, alpha, beta);
+            // cout << i << " " << node_value << endl;
 
             if(node_value > value){
                 move = i;
@@ -312,6 +313,7 @@ public:
             // }
             alpha = max(alpha, value);
         }
+        // cout << "============== " << move << endl;
         return move;
     }
 };
@@ -360,9 +362,9 @@ Mancala botVsBot(int heu1, int heu2, bool print=false){
         if(print) cout << mancala << endl << endl;
 
         if(mancala.current_turn() == 1){
-            mancala.play_turn(player1.suggest_next_move(mancala, 10));
+            mancala.play_turn(player1.suggest_next_move(mancala, 12));
         }else if(mancala.current_turn() == 2){
-            mancala.play_turn(player2.suggest_next_move(mancala, 10));
+            mancala.play_turn(player2.suggest_next_move(mancala, 12));
         }else{
             if(mancala.win() != -1){
                 break;
@@ -385,7 +387,8 @@ void generateReport(){
 }
 
 int main(){
-    
-    generateReport();
+    manVsbot(2);
+    // generateReport();
+    // botVsBot(2, 1, true);
     return 0;
 }
