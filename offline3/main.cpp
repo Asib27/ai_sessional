@@ -3,10 +3,13 @@
 #include<utility>
 #include<algorithm>
 #include<cstdlib>
+#include<cmath>
+#include<set>
 
 using namespace std;
 
 typedef pair<int, pair<int,int>> Edge;
+typedef vector<vector<pair<int,int>>> Graph;
 
 int find_cut_weight(vector<int> &solution, vector<Edge> &edges){
     int cut = 0;
@@ -63,13 +66,97 @@ int randomized_maxcut(int n_v, vector<Edge> edges){
     return find_cut_weight(solution, edges);
 }
 
+int semigreedy_maxcut(int n_v, vector<Edge> edges, Graph graph){
+    vector<int> solution(n_v+1);
+    set<int> rem;
+
+    double alpha = .5;
+
+    // finding threshold
+    int mn = INT32_MAX;
+    int mx = INT32_MIN;
+
+    for(auto i: edges){
+        mn = min(i.first, mn);
+        mx = max(i.first, mx);
+    }
+
+    int thres = mn + (mx-mn) * alpha;
+
+    // finding random first edge
+    vector<Edge> rclEdge;
+
+    for(auto &i:edges){
+        if(i.first >= thres){
+            rclEdge.push_back(i);
+        }
+    }
+    int randEdge = rand() % rclEdge.size();
+
+    // inserting the edge
+    Edge edge = edges[randEdge];
+    solution[edge.second.first] = 1;
+    solution[edge.second.second] = 2;
+
+    // initialize remaining set
+    for(int i = 0; i <= n_v; i++){
+        rem.insert(i);
+    }
+    rem.erase(edge.second.first);
+    rem.erase(edge.second.second);
+
+    // inserting other vertex
+    while(rem.size() != 1){
+        vector<int> sigmaX(n_v+1, 0), sigmaY(n_v+1, 0);
+
+        for(auto node: rem){
+            for(auto edge: graph[node]){
+                int otherend = edge.second;
+                int w = edge.first;
+
+                if(solution[otherend] == 1) sigmaX[node] += w;
+                else if(solution[otherend] == 2) sigmaY[node] += w;
+            }
+        }
+
+        // finding new threshold
+        int mn = INT32_MAX;
+        int mx = INT32_MIN;
+        for(auto node: rem){
+            mn = min({mn, sigmaX[node], sigmaY[node]});
+            mx = max({mx, sigmaX[node], sigmaY[node]});
+        }
+        thres = mn + (mx - mn) * alpha;
+
+        // selecting random vertex
+        vector<int> rclVertex;
+
+        for(auto node: rem){
+            if( max(sigmaX[node], sigmaY[node]) >= thres ){
+                rclVertex.push_back(node);
+            }
+        }
+        int selectedVertexIdx = rand() % rclVertex.size();
+        int selectedVertex = rclVertex[selectedVertexIdx];
+
+        if(sigmaX[selectedVertex] > sigmaY[selectedVertex]){
+            solution[selectedVertex] = 2;
+        }else{
+            solution[selectedVertex] = 1;
+        }
+        rem.erase(selectedVertex);
+    }
+
+    return find_cut_weight(solution, edges);
+}
+
 int main(){
     srand(1927);
 
     int n_v, n_e;
     cin >> n_v >> n_e;
 
-    vector<vector<pair<int,int>>> graph(n_v+1);
+    Graph graph(n_v+1);
     vector<Edge> edges;
     for(int i = 0; i < n_e; i++){
         int a,b,w;
@@ -81,6 +168,9 @@ int main(){
     }
 
     int random = randomized_maxcut(n_v, edges);
+    cout << random << endl;
     int greedy = greedy_maxcut(n_v, edges);
-    cout << random  << " , " << greedy << endl;
+    cout << greedy << endl;
+    int semigreedy = semigreedy_maxcut(n_v, edges, graph);
+    cout << semigreedy << endl;
 }
