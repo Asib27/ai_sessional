@@ -1,0 +1,2 @@
+Name,n,m,random,greedy,semi-greedy,local search iteration,local search avg value,GRASP iteration,GRASP value
+benchmark/g10.rud,800,19176,-93.41,1130,1429.97,1737.31,100,1836,100,

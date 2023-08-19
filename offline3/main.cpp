@@ -1,4 +1,5 @@
 #include<iostream>
+#include<fstream>
 #include<vector>
 #include<utility>
 #include<algorithm>
@@ -10,6 +11,7 @@ using namespace std;
 
 typedef pair<int, pair<int,int>> Edge;
 typedef vector<vector<pair<int,int>>> Graph;
+
 
 int find_cut_weight(vector<int> &solution, vector<Edge> &edges){
     int cut = 0;
@@ -66,7 +68,7 @@ int randomized_maxcut(int n_v, vector<Edge> edges){
     return find_cut_weight(solution, edges);
 }
 
-int semigreedy_maxcut(int n_v, vector<Edge> edges, Graph graph){
+vector<int> semigreedy_maxcut(int n_v, vector<Edge> edges, Graph graph){
     vector<int> solution(n_v+1);
     set<int> rem;
 
@@ -147,10 +149,47 @@ int semigreedy_maxcut(int n_v, vector<Edge> edges, Graph graph){
         rem.erase(selectedVertex);
     }
 
-    return find_cut_weight(solution, edges);
+    return solution;
 }
 
-int main(){
+vector<int> localSearch_maxcut(
+    vector<int> initial_solution, 
+    int n_v, vector<Edge> edges, Graph graph
+){
+    bool change = true;
+
+    while(change){
+        change = false;
+        for(int i = 1; i <= n_v; i++){
+            int sigmaX = 0;
+            int sigmaY = 0;
+
+            for(auto edge: graph[i]){
+                int w = edge.first;
+                int otherend = edge.second;
+
+                if(initial_solution[otherend] == 1) sigmaX += w;
+                else if(initial_solution[otherend] == 2) sigmaY += w;
+            }
+
+            if(initial_solution[i] == 1 && sigmaX > sigmaY){
+                initial_solution[i] = 2;
+                change = true;
+            }else if(initial_solution[i] == 2 && sigmaY > sigmaX){
+                initial_solution[i] = 1;
+                change = true;
+            }
+        }
+    }
+
+    return initial_solution;
+}
+
+int main(int argc, char* argv[]){
+    string problemname = "N/A";
+    if(argc == 2){
+        problemname = argv[1];
+    }
     srand(1927);
 
     int n_v, n_e;
@@ -167,10 +206,60 @@ int main(){
         edges.push_back({w, {a,b}});
     }
 
-    int random = randomized_maxcut(n_v, edges);
-    cout << random << endl;
+    int sum_rand = 0, sum_semigreedy = 0, sum_local = 0;
+    int best_semigreedy = INT32_MIN;
+    int no_of_iteration = 100;
+
+    cout << "running greedy " << endl;
     int greedy = greedy_maxcut(n_v, edges);
-    cout << greedy << endl;
-    int semigreedy = semigreedy_maxcut(n_v, edges, graph);
-    cout << semigreedy << endl;
+    cout << "Greedy\t\t: " << greedy << endl;
+
+    for(int i = 0; i < no_of_iteration; i++){
+        cout << "iteration " << i << endl << endl;
+
+        int random = randomized_maxcut(n_v, edges);
+        sum_rand += random;
+        cout << "random\t\t: " << random << endl;
+
+        vector<int> semigreedy = semigreedy_maxcut(n_v, edges, graph);
+        sum_semigreedy += find_cut_weight(semigreedy, edges);
+        cout << "semigreedy\t: " 
+            << find_cut_weight(semigreedy, edges) << endl;
+
+        
+        vector<int> localSearch = localSearch_maxcut(
+            semigreedy, n_v, edges, graph
+        );
+        int local_search_score = find_cut_weight(localSearch, edges);
+        best_semigreedy = max(local_search_score, best_semigreedy);
+        sum_local += local_search_score;
+        cout<< "localSearch\t: " 
+            << local_search_score << endl;
+
+        cout << endl;
+    }
+
+    cout << "GRASP\t\t: " << best_semigreedy << endl;
+    
+    cout << "\nSUMMARY" << endl;
+    cout << "================================" << endl;
+    cout << "Average random\t\t: " << (double)sum_rand / no_of_iteration << endl;
+    cout << "Greedy\t\t\t: " << greedy << endl;
+    cout << "Average semigreedy\t: " << (double)sum_semigreedy / no_of_iteration << endl;
+    cout << "Average localsearch\t: " << (double)sum_local / no_of_iteration << endl;
+    cout << "GRASP\t\t\t: " << best_semigreedy << endl;
+
+    ofstream report("results.csv", ios_base::app);
+    report << problemname << ","
+           << n_v << ","
+           << n_e << ","
+           << (double)sum_rand / no_of_iteration << ","
+           << greedy << ","
+           << (double)sum_semigreedy / no_of_iteration << ","
+           << (double)sum_local / no_of_iteration << ","
+           << no_of_iteration << ","
+           << best_semigreedy << ","
+           << no_of_iteration << ","
+           << endl;
+    report.close();
 }
