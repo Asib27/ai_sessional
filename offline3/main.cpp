@@ -68,11 +68,9 @@ int randomized_maxcut(int n_v, vector<Edge> edges){
     return find_cut_weight(solution, edges);
 }
 
-vector<int> semigreedy_maxcut(int n_v, vector<Edge> edges, Graph graph){
+vector<int> semigreedy_maxcut(double alpha ,int n_v, vector<Edge> edges, Graph graph){
     vector<int> solution(n_v+1);
     set<int> rem;
-
-    double alpha = .5;
 
     // finding threshold
     int mn = INT32_MAX;
@@ -211,7 +209,8 @@ int main(int argc, char* argv[]){
     int no_of_iteration = 100;
 
     cout << "running greedy " << endl;
-    int greedy = greedy_maxcut(n_v, edges);
+    vector<int> greedy_solution = semigreedy_maxcut(1 , n_v, edges, graph);
+    int greedy = find_cut_weight(greedy_solution, edges);
     cout << "Greedy\t\t: " << greedy << endl;
 
     for(int i = 0; i < no_of_iteration; i++){
@@ -221,7 +220,7 @@ int main(int argc, char* argv[]){
         sum_rand += random;
         cout << "random\t\t: " << random << endl;
 
-        vector<int> semigreedy = semigreedy_maxcut(n_v, edges, graph);
+        vector<int> semigreedy = semigreedy_maxcut(.5,n_v, edges, graph);
         sum_semigreedy += find_cut_weight(semigreedy, edges);
         cout << "semigreedy\t: " 
             << find_cut_weight(semigreedy, edges) << endl;
