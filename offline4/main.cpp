@@ -339,29 +339,53 @@ int main(){
         cars.emplace_back(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
     }
 
-    vector<Car> train, test;
-    for(auto i: cars){
-        int random = rand() % 10;
-        if(random >= 8) test.push_back(i);
-        else train.push_back(i);
+    int n_exp = 20;
+    vector<double> accuracy(n_exp);
+
+    for(int i = 0; i < n_exp; i++){
+        cout << "Test " << i << endl;
+
+        vector<Car> train, test;
+        for(auto i: cars){
+            int random = rand() % 10;
+            if(random >= 8) test.push_back(i);
+            else train.push_back(i);
+        }
+
+        vector<int> total_class = getClassCount(cars);
+        vector<int> train_class = getClassCount(train);
+        vector<int> test_class = getClassCount(test);
+
+        cout << "class" << "\t" << "total\t" << "train\t"  << "test\t" << "%train" << endl;
+        for(int i = 0; i < total_class.size(); i++){
+            cout << i << "\t" << total_class[i] << "\t" << train_class[i] << "\t"
+                 << test_class[i] << "\t" << (double) train_class[i] / total_class[i] << endl;
+        }
+
+        DecisionTree tree;
+        tree.train(train);
+
+        vector<int> ans = tree.test(test);
+        int match = 0;
+        for(int i = 0; i < ans.size(); i++){
+            match += test[i].getValue(N_ATTR) == ans[i];
+        }
+
+        accuracy[i] = (double)match / ans.size();
+        cout << "Test samples  : " << ans.size() << endl;
+        cout << "Total matched : " <<  match << endl;
+        cout << "Accuracy      : " << accuracy[i] << endl;     
+        cout << "\n" << endl;
     }
 
-    vector<int> total_class = getClassCount(cars);
-    vector<int> train_class = getClassCount(train);
-    vector<int> test_class = getClassCount(test);
+    double sum = std::accumulate(accuracy.begin(), accuracy.end(), 0.0);
+    double mean = sum / accuracy.size();
 
-    for(auto i: total_class) cout << i << "\t" ; cout << endl;
-    for(auto i: train_class) cout << i << "\t" ; cout << endl;
-    for(auto i: test_class) cout << i << "\t" ; cout << endl;
+    double sq_sum = std::inner_product(accuracy.begin(), accuracy.end(), accuracy.begin(), 0.0);
+    double stdev = std::sqrt(sq_sum / accuracy.size() - mean * mean);
 
-    DecisionTree tree;
-    tree.train(train);
+    cout << "Aerage Accuracy : " << mean << endl;
+    cout << "Standart Deviation: " << stdev << endl;
 
-    vector<int> ans = tree.test(test);
-    int match = 0;
-    for(int i = 0; i < ans.size(); i++){
-        match += test[i].getValue(N_ATTR) == ans[i];
-    }
-    cout << match << " " << ans.size() << " " << (double)match / ans.size() << endl;     
     return 0;
 }
