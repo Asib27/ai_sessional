@@ -1,6 +1,8 @@
 #include<iostream>
 #include<vector>
 #include<string>
+#include<sstream>
+#include<assert.h>
 
 using namespace std;
 
@@ -23,6 +25,7 @@ private:
         if(lugboot == "small" || lugboot == "low") return 0;
         else if(lugboot == "med") return 1;
         else if(lugboot == "big" || lugboot == "high") return 2;
+        else return -1;
     }
 
     int setDoors(string doors){
@@ -100,3 +103,25 @@ public:
 
 };
 
+int main(){
+    vector<Car> cars;
+
+    // input
+    string line;
+
+    while (getline(cin, line)){
+        stringstream s(line);
+        string word;
+        vector<string> v;
+        while(getline(s, word, ',')){
+            v.push_back(word);
+        }
+
+        assert(v.size() == 7);
+        cars.emplace_back(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
+    }
+
+    cout << cars.size() << endl;
+    
+    return 0;
+}
