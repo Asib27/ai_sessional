@@ -1,0 +1,222 @@
+Test 0
+class	total	train	test	%train
+0	1210	975	235	0.805785
+1	384	300	84	0.78125
+2	69	60	9	0.869565
+3	65	51	14	0.784615
+Test samples  : 342
+Total matched : 312
+Accuracy      : 0.912281
+
+
+Test 1
+class	total	train	test	%train
+0	1210	947	263	0.782645
+1	384	310	74	0.807292
+2	69	57	12	0.826087
+3	65	52	13	0.8
+Test samples  : 362
+Total matched : 333
+Accuracy      : 0.91989
+
+
+Test 2
+class	total	train	test	%train
+0	1210	959	251	0.792562
+1	384	292	92	0.760417
+2	69	55	14	0.797101
+3	65	50	15	0.769231
+Test samples  : 372
+Total matched : 338
+Accuracy      : 0.908602
+
+
+Test 3
+class	total	train	test	%train
+0	1210	967	243	0.799174
+1	384	323	61	0.841146
+2	69	53	16	0.768116
+3	65	52	13	0.8
+Test samples  : 333
+Total matched : 312
+Accuracy      : 0.936937
+
+
+Test 4
+class	total	train	test	%train
+0	1210	975	235	0.805785
+1	384	302	82	0.786458
+2	69	59	10	0.855072
+3	65	49	16	0.753846
+Test samples  : 343
+Total matched : 304
+Accuracy      : 0.886297
+
+
+Test 5
+class	total	train	test	%train
+0	1210	978	232	0.808264
+1	384	306	78	0.796875
+2	69	47	22	0.681159
+3	65	56	9	0.861538
+Test samples  : 341
+Total matched : 310
+Accuracy      : 0.909091
+
+
+Test 6
+class	total	train	test	%train
+0	1210	984	226	0.813223
+1	384	308	76	0.802083
+2	69	58	11	0.84058
+3	65	51	14	0.784615
+Test samples  : 327
+Total matched : 303
+Accuracy      : 0.926606
+
+
+Test 7
+class	total	train	test	%train
+0	1210	944	266	0.780165
+1	384	294	90	0.765625
+2	69	57	12	0.826087
+3	65	49	16	0.753846
+Test samples  : 384
+Total matched : 352
+Accuracy      : 0.916667
+
+
+Test 8
+class	total	train	test	%train
+0	1210	991	219	0.819008
+1	384	299	85	0.778646
+2	69	57	12	0.826087
+3	65	53	12	0.815385
+Test samples  : 328
+Total matched : 299
+Accuracy      : 0.911585
+
+
+Test 9
+class	total	train	test	%train
+0	1210	966	244	0.798347
+1	384	314	70	0.817708
+2	69	61	8	0.884058
+3	65	55	10	0.846154
+Test samples  : 332
+Total matched : 315
+Accuracy      : 0.948795
+
+
+Test 10
+class	total	train	test	%train
+0	1210	964	246	0.796694
+1	384	313	71	0.815104
+2	69	53	16	0.768116
+3	65	53	12	0.815385
+Test samples  : 345
+Total matched : 315
+Accuracy      : 0.913043
+
+
+Test 11
+class	total	train	test	%train
+0	1210	971	239	0.802479
+1	384	314	70	0.817708
+2	69	58	11	0.84058
+3	65	53	12	0.815385
+Test samples  : 332
+Total matched : 306
+Accuracy      : 0.921687
+
+
+Test 12
+class	total	train	test	%train
+0	1210	978	232	0.808264
+1	384	315	69	0.820312
+2	69	53	16	0.768116
+3	65	51	14	0.784615
+Test samples  : 331
+Total matched : 298
+Accuracy      : 0.900302
+
+
+Test 13
+class	total	train	test	%train
+0	1210	972	238	0.803306
+1	384	312	72	0.8125
+2	69	56	13	0.811594
+3	65	52	13	0.8
+Test samples  : 336
+Total matched : 309
+Accuracy      : 0.919643
+
+
+Test 14
+class	total	train	test	%train
+0	1210	973	237	0.804132
+1	384	304	80	0.791667
+2	69	54	15	0.782609
+3	65	48	17	0.738462
+Test samples  : 349
+Total matched : 313
+Accuracy      : 0.896848
+
+
+Test 15
+class	total	train	test	%train
+0	1210	984	226	0.813223
+1	384	297	87	0.773438
+2	69	52	17	0.753623
+3	65	52	13	0.8
+Test samples  : 343
+Total matched : 314
+Accuracy      : 0.915452
+
+
+Test 16
+class	total	train	test	%train
+0	1210	943	267	0.779339
+1	384	307	77	0.799479
+2	69	60	9	0.869565
+3	65	53	12	0.815385
+Test samples  : 365
+Total matched : 334
+Accuracy      : 0.915068
+
+
+Test 17
+class	total	train	test	%train
+0	1210	950	260	0.785124
+1	384	302	82	0.786458
+2	69	53	16	0.768116
+3	65	54	11	0.830769
+Test samples  : 369
+Total matched : 332
+Accuracy      : 0.899729
+
+
+Test 18
+class	total	train	test	%train
+0	1210	970	240	0.801653
+1	384	300	84	0.78125
+2	69	58	11	0.84058
+3	65	50	15	0.769231
+Test samples  : 350
+Total matched : 325
+Accuracy      : 0.928571
+
+
+Test 19
+class	total	train	test	%train
+0	1210	945	265	0.780992
+1	384	316	68	0.822917
+2	69	55	14	0.797101
+3	65	50	15	0.769231
+Test samples  : 362
+Total matched : 329
+Accuracy      : 0.90884
+
+
+Aerage Accuracy : 0.914797
+Standart Deviation: 0.0137364
