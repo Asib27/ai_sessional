@@ -7,6 +7,7 @@
 #include<algorithm>
 #include<numeric>
 #include<cmath>
+#include<cstdio>
 
 using namespace std;
 
@@ -110,6 +111,8 @@ public:
 
 };
 
+class DecisionTree;
+
 class Node
 {
 private:
@@ -144,19 +147,22 @@ public:
             delete i;
         }
     }
+
+    friend DecisionTree;
 };
+
+vector<int> getClassCount(vector<Car> &cars){
+    vector<int> class_count(N_CLASS,0);
+    for(auto &i: cars){
+        class_count[i.getValue(N_ATTR)]++;
+    }
+
+    return class_count;
+}
 
 class DecisionTree
 {
 private:
-    vector<int> getClassCount(vector<Car> &cars){
-        vector<int> class_count(N_CLASS,0);
-        for(auto &i: cars){
-            class_count[i.getValue(N_ATTR)]++;
-        }
-
-        return class_count;
-    }
 
     double calculate_entropy(vector<Car> &cars){
         vector<int> class_count = getClassCount(cars);
@@ -262,7 +268,7 @@ private:
                 if(j.getValue(split_at) == i) childCars.push_back(j);
             }
 
-            if(childCars.size() == 0) continue;
+            // if(childCars.size() == 0) continue;
 
             Node* child = train_helper(childCars, majority_class);
             node->addChild(child);
@@ -279,9 +285,34 @@ public:
 
     void train(vector<Car> cars){
         root = train_helper(cars, -1);
-        root->print();
     }
 
+    int test(Car &car){
+        auto cur = root;
+
+        while(cur){
+            int split = cur->split_attribute;
+            if(split < 0){
+                return cur->answer;
+            }
+
+            int attr_value = car.getValue(split);
+            // cout << attr_value << " " << split << " " << cur->childs.size()  << endl;
+            cur = cur->childs[attr_value];
+        }
+
+        return -1;
+    }
+
+    vector<int> test(vector<Car> &cars){
+        vector<int> ans;
+
+        for(auto &i: cars){
+            ans.push_back(test(i));
+        }
+
+        return ans;
+    }
 
 
     ~DecisionTree() {
@@ -290,6 +321,7 @@ public:
 };
 
 int main(){
+    srand(1927);
     vector<Car> cars;
 
     // input
@@ -307,10 +339,29 @@ int main(){
         cars.emplace_back(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
     }
 
-    cout << cars.size() << endl;
+    vector<Car> train, test;
+    for(auto i: cars){
+        int random = rand() % 10;
+        if(random >= 8) test.push_back(i);
+        else train.push_back(i);
+    }
+
+    vector<int> total_class = getClassCount(cars);
+    vector<int> train_class = getClassCount(train);
+    vector<int> test_class = getClassCount(test);
+
+    for(auto i: total_class) cout << i << "\t" ; cout << endl;
+    for(auto i: train_class) cout << i << "\t" ; cout << endl;
+    for(auto i: test_class) cout << i << "\t" ; cout << endl;
 
     DecisionTree tree;
-    tree.train(cars);
-    
+    tree.train(train);
+
+    vector<int> ans = tree.test(test);
+    int match = 0;
+    for(int i = 0; i < ans.size(); i++){
+        match += test[i].getValue(N_ATTR) == ans[i];
+    }
+    cout << match << " " << ans.size() << " " << (double)match / ans.size() << endl;     
     return 0;
 }
