@@ -2,9 +2,16 @@
 #include<vector>
 #include<string>
 #include<sstream>
+#include<set>
 #include<assert.h>
+#include<algorithm>
+#include<numeric>
+#include<cmath>
 
 using namespace std;
+
+#define N_ATTR 6
+#define N_CLASS 4
 
 class Car
 {
@@ -103,6 +110,104 @@ public:
 
 };
 
+class Node
+{
+private:
+    int split_attribute;
+    vector<Node *> childs;
+public:
+    Node(int split){
+        split_attribute = split;
+    }
+
+    void addChild(Node * child){
+        childs.push_back(child);
+    }
+
+    ~Node(){
+        for(auto i: childs){
+            i->~Node();
+            delete i;
+        }
+    }
+};
+
+class DecisionTree
+{
+private:
+    double calculate_entropy(vector<Car> &cars){
+        vector<int> class_count(N_CLASS,0);
+        for(auto &i: cars){
+            class_count[i.getValue(N_ATTR)]++;
+        }
+        return calculate_B(class_count);
+    }
+
+    double calculate_B(vector<int> classwise_count){
+        double entropy = 0;
+        double sum = accumulate(classwise_count.begin(), classwise_count.end(), 0);
+        for(auto i: classwise_count){
+            if(i == 0) continue;
+            double prob = i / sum;
+            entropy += prob * log2(prob);
+        }
+        return -entropy;
+    }
+    
+public:
+    DecisionTree() {}
+
+    void train(vector<Car> cars){
+        vector<int> attr_used(N_ATTR, 0);
+
+        double ent =  calculate_entropy(cars);
+        double mx_gain = 0;
+        double mx_idx = 0;
+
+        for(int i = 0; i < attr_used.size(); i++){
+            if(!attr_used[i]){
+                double reminder = calculate_reminder(cars, i);
+                double gain = ent - reminder;
+                cout << i << " " << gain << " " << reminder << endl;
+                if(gain > mx_gain){
+                    mx_gain = gain;
+                    mx_idx = i;
+                }
+            }
+        }
+
+        cout << mx_idx << ' ' << mx_gain << endl;
+    }
+
+    double calculate_reminder(vector<Car> &cars, int split){
+        int table[4][N_CLASS] = {0};
+        double sum_table[4] = {0};
+        double total = (double) cars.size();
+
+        for(auto i: cars){
+            table[i.getValue(split)][i.getValue(N_ATTR)]++;
+            sum_table[i.getValue(split)]++;
+        }
+
+        double remainder = 0;
+        for(int i = 0; i < 4; i++){
+            double class_p = sum_table[i] / total;
+            double B = 0;
+            for(int j = 0; j < N_CLASS; j++){
+                if(table[i][j] == 0) continue;
+                double proba = table[i][j] / sum_table[i];
+                B += proba * log2(proba);
+            }
+            remainder += class_p * -B;
+        }
+
+        return remainder;
+    }
+
+
+    ~DecisionTree() {}
+};
+
 int main(){
     vector<Car> cars;
 
@@ -117,11 +222,14 @@ int main(){
             v.push_back(word);
         }
 
-        assert(v.size() == 7);
+        assert(v.size() == N_ATTR + 1);
         cars.emplace_back(v[0], v[1], v[2], v[3], v[4], v[5], v[6]);
     }
 
     cout << cars.size() << endl;
+
+    DecisionTree tree;
+    tree.train(cars);
     
     return 0;
 }
