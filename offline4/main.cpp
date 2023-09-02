@@ -114,14 +114,29 @@ class Node
 {
 private:
     int split_attribute;
+    int answer;
     vector<Node *> childs;
 public:
-    Node(int split){
+    Node(int split, int answer = -1){
         split_attribute = split;
+        this->answer = answer;
     }
 
     void addChild(Node * child){
         childs.push_back(child);
+    }
+
+    void setAnswer(int val){
+        answer = val;
+    }
+
+    void print(int tab=0, int index=0){
+        cout << string(tab, '\t') << index << " -> " << split_attribute << " " << answer << endl;
+
+        int idx = 0;
+        for(auto i: childs){
+            i->print(tab+1, idx++);
+        }
     }
 
     ~Node(){
@@ -135,11 +150,17 @@ public:
 class DecisionTree
 {
 private:
-    double calculate_entropy(vector<Car> &cars){
+    vector<int> getClassCount(vector<Car> &cars){
         vector<int> class_count(N_CLASS,0);
         for(auto &i: cars){
             class_count[i.getValue(N_ATTR)]++;
         }
+
+        return class_count;
+    }
+
+    double calculate_entropy(vector<Car> &cars){
+        vector<int> class_count = getClassCount(cars);
         return calculate_B(class_count);
     }
 
@@ -154,31 +175,6 @@ private:
         return -entropy;
     }
     
-public:
-    DecisionTree() {}
-
-    void train(vector<Car> cars){
-        vector<int> attr_used(N_ATTR, 0);
-
-        double ent =  calculate_entropy(cars);
-        double mx_gain = 0;
-        double mx_idx = 0;
-
-        for(int i = 0; i < attr_used.size(); i++){
-            if(!attr_used[i]){
-                double reminder = calculate_reminder(cars, i);
-                double gain = ent - reminder;
-                cout << i << " " << gain << " " << reminder << endl;
-                if(gain > mx_gain){
-                    mx_gain = gain;
-                    mx_idx = i;
-                }
-            }
-        }
-
-        cout << mx_idx << ' ' << mx_gain << endl;
-    }
-
     double calculate_reminder(vector<Car> &cars, int split){
         int table[4][N_CLASS] = {0};
         double sum_table[4] = {0};
@@ -203,6 +199,86 @@ public:
 
         return remainder;
     }
+
+    int find_best_split(vector<Car> cars){
+        vector<int> attr_used(N_ATTR, 0);
+
+        int updated = 0;
+        double ent =  calculate_entropy(cars);
+        double mx_gain = 0;
+        double mx_idx = 0;
+
+        for(int i = 0; i < attr_used.size(); i++){
+            if(!attr_used[i]){
+                updated = 1;
+                double reminder = calculate_reminder(cars, i);
+                double gain = ent - reminder;
+                // cout << i << " " << gain << " " << reminder << endl;
+                if(gain > mx_gain){
+                    mx_gain = gain;
+                    mx_idx = i;
+                }
+            }
+        }
+
+        // cout << mx_idx << ' ' << mx_gain << endl;
+        return updated==0? -1: mx_idx;
+    }
+
+    int find_if_single_class(vector<Car> &cars){
+        vector<int> class_cnt = getClassCount(cars);
+        for(int i = 0; i < class_cnt.size(); i++){
+            if(class_cnt[i] == cars.size()) return i;
+        }
+        return -1;
+    }
+
+    int find_majority(vector<Car> &cars){
+        vector<int> class_cnt = getClassCount(cars);
+        int mx_idx = max_element(class_cnt.begin(), class_cnt.end()) - class_cnt.begin();
+        return mx_idx;
+    }
+
+    Node* train_helper(vector<Car> cars, int majority){
+        if(cars.size() == 0) return new Node(-1, majority);
+
+        // check if only one class
+        int if_one_class= find_if_single_class(cars);
+        // cout << if_one_class << endl;
+        if(if_one_class != -1){
+            return new Node(-2, if_one_class);
+        }
+
+        // get best split attribute
+        int split_at = find_best_split(cars);
+        
+        // if no attribute left
+        int majority_class = find_majority(cars);
+        if(split_at == -1) return new Node(-3, majority_class);
+
+        Node * node = new Node(split_at);
+        for(int i = 0; i < 4; i++){
+            vector<Car> childCars;
+            for(auto j: cars){
+                if(j.getValue(split_at) == i) childCars.push_back(j);
+            }
+
+            if(childCars.size() == 0) continue;
+
+            Node* child = train_helper(childCars, majority_class);
+            node->addChild(child);
+        }        
+
+        return node;
+    }
+public:
+    DecisionTree() {}
+
+    void train(vector<Car> cars){
+        Node* rt = train_helper(cars, -1);
+        rt->print();
+    }
+
 
 
     ~DecisionTree() {}
