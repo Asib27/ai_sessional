@@ -141,7 +141,6 @@ public:
 
     ~Node(){
         for(auto i: childs){
-            i->~Node();
             delete i;
         }
     }
@@ -271,17 +270,23 @@ private:
 
         return node;
     }
+
+    Node* root;
 public:
-    DecisionTree() {}
+    DecisionTree() {
+        root = nullptr;
+    }
 
     void train(vector<Car> cars){
-        Node* rt = train_helper(cars, -1);
-        rt->print();
+        root = train_helper(cars, -1);
+        root->print();
     }
 
 
 
-    ~DecisionTree() {}
+    ~DecisionTree() {
+        if(root != nullptr) delete root;
+    }
 };
 
 int main(){
